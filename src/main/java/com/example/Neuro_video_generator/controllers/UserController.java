@@ -11,10 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/user")
 public class UserController {
     @Autowired
-    UserService userService;
+    private UserService userService;
     @GetMapping("/get-processed-video")
-    public void getProcessedVideo(@RequestParam(name = "name") String fileName){
-        userService.getProcessedVideo(fileName);
+    public void getProcessedVideo(@RequestParam(name = "name") String fileName,@RequestParam("fps") int fps){
+        log.debug("filename = " + fileName);
+        userService.getProcessedVideo(fileName,fps);
     }
     @PostMapping("/upload")
     public void handleFileUpload(@RequestParam("file") MultipartFile file){
