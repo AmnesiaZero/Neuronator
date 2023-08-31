@@ -34,27 +34,43 @@ public class UserService{
         List<BufferedImage> processedImages = new ArrayList<>();
         IVelvetVideoLib lib = VelvetVideoLib.getInstance();
         File inputVideo = new File(inputVideoPath);
+        int frameCounter = 0;
+        int frameNumber = 1;
         try (IDemuxer demuxer = lib.demuxer(inputVideo)) {
             IVideoDecoderStream videoStream = demuxer.videoStreams().get(0);
             IVideoFrame videoFrame;
             while ((videoFrame=videoStream.nextFrame())!=null){
-                BufferedImage image = videoFrame.image();
-                BufferedImage processedImage = getProcessedImage(image);
-                processedImages.add(processedImage);
+                if(frameCounter<10){
+                    frameCounter++;
+                }
+                else {
+                    BufferedImage image = videoFrame.image();
+                    log.info("Начал обработку изображения");
+                    BufferedImage processedImage = getProcessedImage(image,frameNumber);
+                    log.info("Закончил обработку изображения");
+                    processedImages.add(processedImage);
+                    frameCounter=0;
+                    frameNumber++;
+                }
             }
         }
-        String outputVideoPath = resourcesDirectory + "media" + sep + "videos" + sep + "output_videos" + sep + "output_video.webm";
+        log.info("Закончил обработку кадров");
+        String outputVideoPath = resourcesDirectory + sep + "media" + sep + "videos" + sep + "output_videos" + sep + "output_video.webm";
         File outputVideo = new File(outputVideoPath);
+        log.debug("Обработанное видео создано - " + outputVideo.createNewFile());
         try (IMuxer muxer = lib.muxer("webm").videoEncoder(lib.videoEncoder("libvpx-vp9").framerate(1, 5))
                 .build(outputVideo)) {
             IVideoEncoderStream encoder = muxer.videoEncoder(0);
             for (BufferedImage image : processedImages) {
-                encoder.encode(image);
+                if(image!=null)
+                    encoder.encode(image);
+                else
+                    log.debug("Изображение - null");
             }
         }
     }
     @SneakyThrows
-    public BufferedImage getProcessedImage(BufferedImage image) {
+    public BufferedImage getProcessedImage(BufferedImage image, int frameNumber) {
         String resourcesDirectory = System.getProperty("user.dir")  + sep + "src" + sep + "main" + sep + "resources";
 
         String inputImagePath = resourcesDirectory  + sep + "media" + sep + "images" + sep + "input_images" + sep + "input_image.png";
@@ -63,21 +79,23 @@ public class UserService{
         ImageIO.write(image,"png",inputImage);
 
         String outputImageDirectory = resourcesDirectory  + sep + "media" + sep + "images" + sep + "output_images";
-        String outputImagePathSvg = outputImageDirectory  + sep + "output_image.svg";
+        String outputImagePathSvg = outputImageDirectory  + sep + "output_image" +frameNumber + ".svg";
         File outputImageSvg = new File(outputImagePathSvg);
-        if(outputImageSvg.exists()){
-            log.debug("Файл - " + outputImagePathSvg + " уже существует,удаляю");
-            outputImageSvg.delete();
-        }
+//        if(outputImageSvg.exists()){
+//            log.debug("Файл - " + outputImagePathSvg + " уже существует,удаляю");
+//            log.debug("Результат - " + outputImageSvg.delete());
+//        }
         outputImageSvg.createNewFile();
+
         String linedrawPath = resourcesDirectory +  sep + "libraries" + sep + "linedraw" + sep + "linedraw.py";
         String command = "python "  + linedrawPath + " -i " + inputImagePath + " -o " + outputImagePathSvg;
         log.debug(command);
         Process process = Runtime.getRuntime().exec(command);
-        String outputImagePathPng = outputImageDirectory  + sep + "output_image.png";
-        BufferedImage processedImage = TypeConvertor.svgToPng(outputImagePathSvg,outputImagePathPng);
-        inputImage.delete();
-        outputImageSvg.delete();
+        String outputImagePathPng = outputImageDirectory  + sep + "output_image" +frameNumber + ".png";
+        String outputImageResourcePathPng = "/media/images/output_images/" + "output_image" +frameNumber + ".png";
+        BufferedImage processedImage = new TypeConvertor().svgToPng(outputImageResourcePathPng,outputImagePathPng);
+        log.debug(inputImagePath + " удален - " + inputImage.delete());
+//        log.debug(outputImagePathSvg + " удален - " + outputImageSvg.delete());
         return processedImage;
     }
     @SneakyThrows

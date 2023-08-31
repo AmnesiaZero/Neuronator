@@ -134,6 +134,11 @@
 			<version>22.11</version>
 			<classifier>javadoc</classifier>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-codec</artifactId>
+			<version>1.9</version>
+		</dependency>
 
 
 
