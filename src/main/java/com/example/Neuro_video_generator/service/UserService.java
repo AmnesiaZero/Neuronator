@@ -40,7 +40,7 @@ public class UserService{
             IVideoDecoderStream videoStream = demuxer.videoStreams().get(0);
             IVideoFrame videoFrame;
             while ((videoFrame=videoStream.nextFrame())!=null){
-                if(frameCounter<10){
+                if(frameCounter<5){
                     frameCounter++;
                 }
                 else {
@@ -73,7 +73,7 @@ public class UserService{
     public BufferedImage getProcessedImage(BufferedImage image, int frameNumber) {
         String resourcesDirectory = System.getProperty("user.dir")  + sep + "src" + sep + "main" + sep + "resources";
 
-        String inputImagePath = resourcesDirectory  + sep + "media" + sep + "images" + sep + "input_images" + sep + "input_image.png";
+        String inputImagePath = resourcesDirectory  + sep + "media" + sep + "images" + sep + "input_images" + sep + "input_image" +frameNumber + ".png";
         log.debug("image path = " + inputImagePath);
         File inputImage = new File(inputImagePath);
         ImageIO.write(image,"png",inputImage);
@@ -81,10 +81,6 @@ public class UserService{
         String outputImageDirectory = resourcesDirectory  + sep + "media" + sep + "images" + sep + "output_images";
         String outputImagePathSvg = outputImageDirectory  + sep + "output_image" +frameNumber + ".svg";
         File outputImageSvg = new File(outputImagePathSvg);
-//        if(outputImageSvg.exists()){
-//            log.debug("Файл - " + outputImagePathSvg + " уже существует,удаляю");
-//            log.debug("Результат - " + outputImageSvg.delete());
-//        }
         outputImageSvg.createNewFile();
 
         String linedrawPath = resourcesDirectory +  sep + "libraries" + sep + "linedraw" + sep + "linedraw.py";
@@ -95,7 +91,7 @@ public class UserService{
         String outputImageResourcePathPng = "/media/images/output_images/" + "output_image" +frameNumber + ".png";
         BufferedImage processedImage = new TypeConvertor().svgToPng(outputImageResourcePathPng,outputImagePathPng);
         log.debug(inputImagePath + " удален - " + inputImage.delete());
-//        log.debug(outputImagePathSvg + " удален - " + outputImageSvg.delete());
+        log.debug(outputImagePathSvg + " удален - " + outputImageSvg.delete());
         return processedImage;
     }
     @SneakyThrows
